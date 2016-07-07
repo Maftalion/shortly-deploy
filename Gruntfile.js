@@ -63,8 +63,7 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
-        command: ['git add .',
-                'git commit'].join('&&')       
+        command: 'git add . && git commit'       
       }
     },
   });

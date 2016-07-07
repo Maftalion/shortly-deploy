@@ -1,15 +1,14 @@
-//DOES IT WORK??
 var express = require('express');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var util = require('./lib/utility');
-
+var mongoose = require('mongoose');
 var handler = require('./lib/request-handler');
 
 var app = express();
-
+mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());

@@ -63,7 +63,7 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
-        command: 'git add . && git commit'       
+        command: 'git add . && git commit'
       }
     },
   });
@@ -93,17 +93,14 @@ module.exports = function(grunt) {
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      grunt.task.run([ 'shell' ]);
+      grunt.task.run(['shell']);
       // add your production server task here
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
   });
 
-  grunt.registerTask('deploy', [
-    grunt.task.run(['upload'])
-      // add your production server task here
-  ]);
+  grunt.registerTask('deploy', ['upload']);
 
 
 };

@@ -6,9 +6,10 @@ var session = require('express-session');
 var util = require('./lib/utility');
 var mongoose = require('mongoose');
 var handler = require('./lib/request-handler');
+var path = require('path');
 
 var app = express();
-mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
+// mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());

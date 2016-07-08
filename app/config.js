@@ -1,25 +1,32 @@
-var path = require('path');
+// var path = require('path');
 var mongoose = require('mongoose');
 var crypto = require('crypto');
 var bcrypt = require('bcrypt-nodejs');
 
-
-mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
+// mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
+var url = 'mongodb://localhost/db';
+var connection = mongoose.createConnection(url);
+mongoose.connect(url);
 var db = mongoose.connection;
 var Schema = mongoose.Schema;
 
+db.on('error', console.error);
+db.once('open', function() {
+  // we're connected!
+  console.log('Connected!');
+});
+
 urlsSchema = new Schema ({
-  id: ObjectId(true),
+  id: Schema.ObjectId,
   url: String,
   baseUrl: String,
   code: String,
   title: String,
-  visits: Number,
   timeStamp: { type: Date, default: Date.now }
 });
 
 usersSchema = new Schema ({
-  id: ObjectId(true),
+  id: Schema.ObjectId,
   username: {type: String, required: true, unique: true},
   password: {type: String, required: true},
   timeStamp: { type: Date, default: Date.now }
@@ -40,7 +47,15 @@ usersSchema.pre('save', function(next) {
       next();
     });
   });
+});
 
+urlsSchema.pre('save', function(next) {
+  var link = this;
+  var shasum = crypto.createHash('sha1');
+  shasum.update(link.url);
+  link.code = shasum.digest('hex').slice(0, 5);
+ 
+  next();
 });
 
 module.exports = { 

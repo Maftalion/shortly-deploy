@@ -2,7 +2,7 @@
 var mongoose = require('mongoose');
 var crypto = require('crypto');
 var bcrypt = require('bcrypt-nodejs');
-
+var Promise = require('bluebird');
 // mongoose.connect(path.join(__dirname, '../db/shortly.mongoDB'));
 var url = 'mongodb://localhost/db';
 var connection = mongoose.createConnection(url);
@@ -17,7 +17,6 @@ db.once('open', function() {
 });
 
 urlsSchema = new Schema ({
-  id: Schema.ObjectId,
   url: String,
   baseUrl: String,
   code: String,
@@ -26,7 +25,6 @@ urlsSchema = new Schema ({
 });
 
 usersSchema = new Schema ({
-  id: Schema.ObjectId,
   username: {type: String, required: true, unique: true},
   password: {type: String, required: true},
   timeStamp: { type: Date, default: Date.now }
@@ -34,19 +32,12 @@ usersSchema = new Schema ({
 
 
 usersSchema.pre('save', function(next) {
-  var user = this;
-  bcrypt.genSalt(10, function(err, salt) { 
-    if (err) {
-      return next(err);
-    }
-    bcrypt.hash(user.password, salt, function(err, hash) {
-      if (err) {
-        return next(err);
-      }
-      user.password = hash;
+  var cipher = Promise.promisify(bcrypt.hash);
+  return cipher(this.password, null, null).bind(this)
+    .then(function(hash) {
+      this.password = hash;
       next();
     });
-  });
 });
 
 urlsSchema.pre('save', function(next) {
@@ -57,52 +48,19 @@ urlsSchema.pre('save', function(next) {
  
   next();
 });
+var User = mongoose.model('User', usersSchema);
+
+User.comparePassword = function(candidatePassword, savedPassword, cb) {
+  bcrypt.compare(candidatePassword, savedPassword, function(err, isMatch) {
+    if (err) { return cb(err); }
+    cb(null, isMatch);
+  });
+};
 
 module.exports = { 
   Link: mongoose.model('Link', urlsSchema),
-  User: mongoose.model('User', usersSchema),
+  User: User,
   DB: db
 };
-
-
-
-
-// var knex = require('knex')({
-//   client: 'sqlite3',
-//   connection: {
-//     filename: path.join(__dirname, '../db/shortly.sqlite')
-//   },
-//   useNullAsDefault: true
-// });
-// var db = require('bookshelf')(knex);
-
-// db.knex.schema.hasTable('urls').then(function(exists) {
-//   if (!exists) {
-//     db.knex.schema.createTable('urls', function (link) {
-//       link.increments('id').primary();
-//       link.string('url', 255);
-//       link.string('baseUrl', 255);
-//       link.string('code', 100);
-//       link.string('title', 255);
-//       link.integer('visits');
-//       link.timestamps();
-//     }).then(function (table) {
-//       console.log('Created Table', table);
-//     });
-//   }
-// });
-
-// db.knex.schema.hasTable('users').then(function(exists) {
-//   if (!exists) {
-//     db.knex.schema.createTable('users', function (user) {
-//       user.increments('id').primary();
-//       user.string('username', 100).unique();
-//       user.string('password', 100);
-//       user.timestamps();
-//     }).then(function (table) {
-//       console.log('Created Table', table);
-//     });
-//   }
-// });
 
 
